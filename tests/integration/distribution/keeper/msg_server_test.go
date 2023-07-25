@@ -262,7 +262,7 @@ func TestMsgWithdrawDelegatorReward(t *testing.T) {
 				ValidatorAddress: sdk.ValAddress(sdk.AccAddress(PKS[2].Address())).String(),
 			},
 			expErr:    true,
-			expErrMsg: "validator does not exist",
+			expErrMsg: "not found",
 		},
 		{
 			name: "valid msg",
@@ -932,7 +932,7 @@ func TestMsgDepositValidatorRewardsPool(t *testing.T) {
 				Amount:           sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(100))),
 			},
 			expErr:    true,
-			expErrMsg: "validator does not exist",
+			expErrMsg: "not found",
 		},
 	}
 
