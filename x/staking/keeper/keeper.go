@@ -33,6 +33,7 @@ type Keeper struct {
 	consensusAddressCodec addresscodec.Codec
 
 	Schema           collections.Schema
+	HistoricalInfo   collections.Map[uint64, types.HistoricalInfo]
 	LastTotalPower   collections.Item[math.Int]
 	ValidatorUpdates collections.Item[types.ValidatorUpdates]
 	Validators       collections.Map[sdk.ValAddress, types.Validator]
@@ -77,6 +78,7 @@ func NewKeeper(
 		validatorAddressCodec: validatorAddressCodec,
 		consensusAddressCodec: consensusAddressCodec,
 		LastTotalPower:        collections.NewItem(sb, types.LastTotalPowerKey, "last_total_power", sdk.IntValue),
+		HistoricalInfo:        collections.NewMap(sb, types.HistoricalInfoKey, "historical_info", collections.Uint64Key, codec.CollValue[types.HistoricalInfo](cdc)),
 		ValidatorUpdates:      collections.NewItem(sb, types.ValidatorUpdatesKey, "validator_updates", codec.CollValue[types.ValidatorUpdates](cdc)),
 		Validators:            collections.NewMap(sb, types.ValidatorsKey, "validators", sdk.ValAddressKey, codec.CollValue[types.Validator](cdc)),
 	}
