@@ -146,7 +146,7 @@ func initAppConfig() (string, interface{}) {
 	}
 
 	type CustomAppConfig struct {
-		serverconfig.Config
+		serverconfig.Config `mapstructure:",squash"`
 
 		WASM WASMConfig `mapstructure:"wasm"`
 	}
@@ -209,7 +209,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, b
 		genesisCommand(encodingConfig, basicManager),
 		txCommand(),
 		queryCommand(),
-		keys.Commands(simapp.DefaultNodeHome),
+		keys.Commands(),
 	)
 }
 

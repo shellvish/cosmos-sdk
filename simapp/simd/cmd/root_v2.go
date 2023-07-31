@@ -156,7 +156,7 @@ func initAppConfig() (string, interface{}) {
 	}
 
 	type CustomAppConfig struct {
-		serverconfig.Config
+		serverconfig.Config `mapstructure:",squash"`
 
 		WASM WASMConfig `mapstructure:"wasm"`
 	}
@@ -225,7 +225,7 @@ func initRootCmd(
 		genesisCommand(txConfig, basicManager),
 		queryCommand(),
 		txCommand(),
-		keys.Commands(simapp.DefaultNodeHome),
+		keys.Commands(),
 	)
 }
 
