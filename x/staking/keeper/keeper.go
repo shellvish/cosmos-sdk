@@ -42,6 +42,7 @@ type Keeper struct {
 	UnbondingDelegation                     collections.Map[sdk.AccAddress, types.UnbondingDelegation]
 	UnbondingDelegationByValidatorDelegator collections.Map[collections.Pair[sdk.ValAddress, sdk.AccAddress], types.UnbondingDelegation]
 	UnbondingDelegationByValIndex           collections.Map[collections.Pair[sdk.AccAddress, sdk.ValAddress], []byte]
+	DelegationsByValidator                  collections.Map[collections.Pair[sdk.ValAddress, sdk.AccAddress], []byte]
 }
 
 // NewKeeper creates a new staking Keeper instance
@@ -92,6 +93,12 @@ func NewKeeper(
 		// UnbondingDelegation:              collections.NewMap(sb, types.UnbondingDelegationKey, "unbonding_delegation", collections.PairKeyCodec(collections.Uint64Key, sdk.AccAddressKey), codec.CollValue[types.UnbondingDelegation](cdc)),
 		UnbondingDelegationByValidatorDelegator: collections.NewMap(sb, types.UnbondingDelegationByValIndexKey, "unbonding_delegation_by_val_del", collections.PairKeyCodec(sdk.ValAddressKey, sdk.AccAddressKey), codec.CollValue[types.UnbondingDelegation](cdc)),
 		UnbondingDelegationByValIndex:           collections.NewMap(sb, types.UnbondingIDKey, "unbonding_delegation_by_val_index", collections.PairKeyCodec(sdk.AccAddressKey, sdk.ValAddressKey), collections.BytesValue),
+		DelegationsByValidator: collections.NewMap(
+			sb, types.DelegationByValIndexKey,
+			"delegations_by_validator",
+			collections.PairKeyCodec(sdk.LengthPrefixedAddressKey(sdk.ValAddressKey), sdk.AccAddressKey), // nolint: staticcheck // sdk.LengthPrefixedAddressKey is needed to retain state compatibility
+			collections.BytesValue,
+		),
 	}
 
 	schema, err := sb.Build()

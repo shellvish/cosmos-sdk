@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/collections"
 	"cosmossdk.io/math"
 
+	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/testutil"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -83,6 +84,7 @@ func (s *KeeperTestSuite) TestUnbondingDelegationByUnbondingIDAccessors() {
 				time.Unix(0, 0).UTC(),
 				math.NewInt(5),
 				0,
+				addresscodec.NewBech32Codec("cosmosvaloper"), addresscodec.NewBech32Codec("cosmos"),
 			),
 		},
 		{
@@ -95,6 +97,7 @@ func (s *KeeperTestSuite) TestUnbondingDelegationByUnbondingIDAccessors() {
 				time.Unix(0, 0).UTC(),
 				math.NewInt(5),
 				0,
+				addresscodec.NewBech32Codec("cosmosvaloper"), addresscodec.NewBech32Codec("cosmos"),
 			),
 		},
 		{
@@ -107,6 +110,7 @@ func (s *KeeperTestSuite) TestUnbondingDelegationByUnbondingIDAccessors() {
 				time.Unix(0, 0).UTC(),
 				math.NewInt(5),
 				0,
+				addresscodec.NewBech32Codec("cosmosvaloper"), addresscodec.NewBech32Codec("cosmos"),
 			),
 		},
 	}
@@ -158,6 +162,7 @@ func (s *KeeperTestSuite) TestRedelegationByUnbondingIDAccessors() {
 				math.NewInt(10),
 				math.LegacyNewDec(10),
 				0,
+				addresscodec.NewBech32Codec("cosmosvaloper"), addresscodec.NewBech32Codec("cosmos"),
 			),
 		},
 		{
@@ -172,6 +177,7 @@ func (s *KeeperTestSuite) TestRedelegationByUnbondingIDAccessors() {
 				math.NewInt(10),
 				math.LegacyNewDec(10),
 				0,
+				addresscodec.NewBech32Codec("cosmosvaloper"), addresscodec.NewBech32Codec("cosmos"),
 			),
 		},
 		{
@@ -186,6 +192,7 @@ func (s *KeeperTestSuite) TestRedelegationByUnbondingIDAccessors() {
 				math.NewInt(10),
 				math.LegacyNewDec(10),
 				0,
+				addresscodec.NewBech32Codec("cosmosvaloper"), addresscodec.NewBech32Codec("cosmos"),
 			),
 		},
 	}
@@ -285,6 +292,7 @@ func (s *KeeperTestSuite) TestUnbondingCanComplete() {
 		time.Unix(0, 0).UTC(),
 		math.NewInt(5),
 		unbondingID,
+		addresscodec.NewBech32Codec("cosmosvaloper"), addresscodec.NewBech32Codec("cosmos"),
 	)
 	require.NoError(s.stakingKeeper.SetUnbondingDelegation(s.ctx, ubd))
 	require.NoError(s.stakingKeeper.SetUnbondingDelegationByUnbondingID(s.ctx, ubd, unbondingID))
@@ -312,6 +320,7 @@ func (s *KeeperTestSuite) TestUnbondingCanComplete() {
 		math.NewInt(10),
 		math.LegacyNewDec(10),
 		unbondingID,
+		addresscodec.NewBech32Codec("cosmosvaloper"), addresscodec.NewBech32Codec("cosmos"),
 	)
 	require.NoError(s.stakingKeeper.SetRedelegation(s.ctx, red))
 	require.NoError(s.stakingKeeper.SetRedelegationByUnbondingID(s.ctx, red, unbondingID))
