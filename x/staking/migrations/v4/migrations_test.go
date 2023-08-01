@@ -141,5 +141,5 @@ func getUBD(t *testing.T, accAddr sdk.AccAddress, valAddr sdk.ValAddress, store 
 }
 
 func getUBDKey(accAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte {
-	return types.GetUBDKey(accAddr, valAddr)
+	return append(append(types.UnbondingDelegationKey, accAddr...), valAddr...)
 }

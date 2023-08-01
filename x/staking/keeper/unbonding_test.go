@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	"cosmossdk.io/collections"
 	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -125,7 +126,7 @@ func (s *KeeperTestSuite) TestUnbondingDelegationByUnbondingIDAccessors() {
 				require.NoError(err)
 				require.Equal(tc.expected, ubd)
 			} else {
-				require.ErrorIs(err, types.ErrNoUnbondingDelegation)
+				require.ErrorIs(err, collections.ErrNotFound)
 			}
 		})
 	}
@@ -256,7 +257,7 @@ func (s *KeeperTestSuite) TestValidatorByUnbondingIDAccessors() {
 				require.NoError(err)
 				require.Equal(tc.validator, val)
 			} else {
-				require.ErrorIs(err, types.ErrNoValidatorFound)
+				require.ErrorIs(err, collections.ErrNotFound)
 			}
 		})
 	}
@@ -275,7 +276,7 @@ func (s *KeeperTestSuite) TestUnbondingCanComplete() {
 	// unbonding delegation
 	require.NoError(s.stakingKeeper.SetUnbondingType(s.ctx, unbondingID, types.UnbondingType_UnbondingDelegation))
 	err = s.stakingKeeper.UnbondingCanComplete(s.ctx, unbondingID)
-	require.ErrorIs(err, types.ErrNoUnbondingDelegation)
+	require.ErrorIs(err, collections.ErrNotFound)
 
 	ubd := types.NewUnbondingDelegation(
 		delAddrs[0],
@@ -324,7 +325,7 @@ func (s *KeeperTestSuite) TestUnbondingCanComplete() {
 	unbondingID++
 	require.NoError(s.stakingKeeper.SetUnbondingType(s.ctx, unbondingID, types.UnbondingType_ValidatorUnbonding))
 	err = s.stakingKeeper.UnbondingCanComplete(s.ctx, unbondingID)
-	require.ErrorIs(err, types.ErrNoValidatorFound)
+	require.ErrorIs(err, collections.ErrNotFound)
 
 	val := testutil.NewValidator(s.T(), valAddrs[0], PKs[0])
 	require.NoError(s.stakingKeeper.Validators.Set(s.ctx, val.GetOperator(), val))

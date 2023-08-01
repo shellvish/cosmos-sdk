@@ -75,12 +75,12 @@ func TestStoreMigration(t *testing.T) {
 		{
 			"UnbondingDelegationKey",
 			v1.GetUBDKey(addr4, valAddr1),
-			types.GetUBDKey(addr4, valAddr1),
+			unbondingKey(addr4, valAddr1),
 		},
 		{
 			"UnbondingDelegationByValIndexKey",
 			v1.GetUBDByValIndexKey(addr4, valAddr1),
-			types.GetUBDByValIndexKey(addr4, valAddr1),
+			unbondingByValIndexKey(addr4, valAddr1),
 		},
 		{
 			"RedelegationKey",
@@ -138,4 +138,12 @@ func TestStoreMigration(t *testing.T) {
 			require.Equal(t, value, store.Get(tc.newKey))
 		})
 	}
+}
+
+func unbondingKey(delAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte {
+	return append(append(types.UnbondingDelegationKey, address.MustLengthPrefix(delAddr)...), address.MustLengthPrefix(valAddr)...)
+}
+
+func unbondingByValIndexKey(delAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte {
+	return append(append(types.UnbondingDelegationByValIndexKey, address.MustLengthPrefix(valAddr)...), address.MustLengthPrefix(delAddr)...)
 }

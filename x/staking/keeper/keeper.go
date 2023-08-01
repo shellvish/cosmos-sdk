@@ -37,6 +37,11 @@ type Keeper struct {
 	LastTotalPower   collections.Item[math.Int]
 	ValidatorUpdates collections.Item[types.ValidatorUpdates]
 	Validators       collections.Map[sdk.ValAddress, types.Validator]
+	UnbondingIndex   collections.Map[uint64, []byte]
+	// UnbondingDelegation              collections.Map[collections.Pair[sdk.AccAddress, sdk.ValAddress], types.UnbondingDelegation]
+	UnbondingDelegation                     collections.Map[sdk.AccAddress, types.UnbondingDelegation]
+	UnbondingDelegationByValidatorDelegator collections.Map[collections.Pair[sdk.ValAddress, sdk.AccAddress], types.UnbondingDelegation]
+	UnbondingDelegationByValIndex           collections.Map[collections.Pair[sdk.AccAddress, sdk.ValAddress], []byte]
 }
 
 // NewKeeper creates a new staking Keeper instance
@@ -81,6 +86,12 @@ func NewKeeper(
 		HistoricalInfo:        collections.NewMap(sb, types.HistoricalInfoKey, "historical_info", collections.Uint64Key, codec.CollValue[types.HistoricalInfo](cdc)),
 		ValidatorUpdates:      collections.NewItem(sb, types.ValidatorUpdatesKey, "validator_updates", codec.CollValue[types.ValidatorUpdates](cdc)),
 		Validators:            collections.NewMap(sb, types.ValidatorsKey, "validators", sdk.ValAddressKey, codec.CollValue[types.Validator](cdc)),
+		UnbondingIndex:        collections.NewMap(sb, types.UnbondingIndexKey, "unbonding_index", collections.Uint64Key, collections.BytesValue),
+		// UnbondingDelegation:              collections.NewMap(sb, types.UnbondingDelegationKey, "unbonding_delegation", collections.PairKeyCodec(sdk.AccAddressKey, sdk.ValAddressKey), codec.CollValue[types.UnbondingDelegation](cdc)),
+		UnbondingDelegation: collections.NewMap(sb, types.UnbondingDelegationKey, "unbonding_delegation", sdk.AccAddressKey, codec.CollValue[types.UnbondingDelegation](cdc)),
+		// UnbondingDelegation:              collections.NewMap(sb, types.UnbondingDelegationKey, "unbonding_delegation", collections.PairKeyCodec(collections.Uint64Key, sdk.AccAddressKey), codec.CollValue[types.UnbondingDelegation](cdc)),
+		UnbondingDelegationByValidatorDelegator: collections.NewMap(sb, types.UnbondingDelegationByValIndexKey, "unbonding_delegation_by_val_del", collections.PairKeyCodec(sdk.ValAddressKey, sdk.AccAddressKey), codec.CollValue[types.UnbondingDelegation](cdc)),
+		UnbondingDelegationByValIndex:           collections.NewMap(sb, types.UnbondingIDKey, "unbonding_delegation_by_val_index", collections.PairKeyCodec(sdk.AccAddressKey, sdk.ValAddressKey), collections.BytesValue),
 	}
 
 	schema, err := sb.Build()

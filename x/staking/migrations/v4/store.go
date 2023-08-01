@@ -94,7 +94,7 @@ func setUBDToStore(ctx sdk.Context, store storetypes.KVStore, cdc codec.BinaryCo
 		panic(err)
 	}
 
-	key := types.GetUBDKey(delegatorAddress, addr)
+	key := append(append(types.UnbondingDelegationKey, delegatorAddress...), addr...)
 
 	store.Set(key, bz)
 }

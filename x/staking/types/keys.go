@@ -38,16 +38,16 @@ var (
 	ValidatorsByConsAddrKey   = []byte{0x22}              // prefix for each key to a validator index, by pubkey
 	ValidatorsByPowerIndexKey = []byte{0x23}              // prefix for each key to a validator index, sorted by power
 
-	DelegationKey                    = []byte{0x31} // key for a delegation
-	UnbondingDelegationKey           = []byte{0x32} // key for an unbonding-delegation
-	UnbondingDelegationByValIndexKey = []byte{0x33} // prefix for each key for an unbonding-delegation, by validator operator
-	RedelegationKey                  = []byte{0x34} // key for a redelegation
-	RedelegationByValSrcIndexKey     = []byte{0x35} // prefix for each key for an redelegation, by source validator operator
-	RedelegationByValDstIndexKey     = []byte{0x36} // prefix for each key for an redelegation, by destination validator operator
+	DelegationKey                    = []byte{0x31}              // key for a delegation
+	UnbondingDelegationKey           = collections.NewPrefix(50) // key for an unbonding-delegation
+	UnbondingDelegationByValIndexKey = collections.NewPrefix(51) // prefix for each key for an unbonding-delegation, by validator operator
+	RedelegationKey                  = []byte{0x34}              // key for a redelegation
+	RedelegationByValSrcIndexKey     = []byte{0x35}              // prefix for each key for an redelegation, by source validator operator
+	RedelegationByValDstIndexKey     = []byte{0x36}              // prefix for each key for an redelegation, by destination validator operator
 
-	UnbondingIDKey    = []byte{0x37} // key for the counter for the incrementing id for UnbondingOperations
-	UnbondingIndexKey = []byte{0x38} // prefix for an index for looking up unbonding operations by their IDs
-	UnbondingTypeKey  = []byte{0x39} // prefix for an index containing the type of unbonding operations
+	UnbondingIDKey    = collections.NewPrefix(55) // key for the counter for the incrementing id for UnbondingOperations
+	UnbondingIndexKey = collections.NewPrefix(56) // prefix for an index for looking up unbonding operations by their IDs
+	UnbondingTypeKey  = []byte{0x39}              // prefix for an index containing the type of unbonding operations
 
 	UnbondingQueueKey    = []byte{0x41} // prefix for the timestamps in unbonding queue
 	RedelegationQueueKey = []byte{0x42} // prefix for the timestamps in redelegations queue
@@ -83,12 +83,6 @@ func GetUnbondingIndexKey(id uint64) []byte {
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, id)
 	return append(UnbondingIndexKey, bz...)
-}
-
-// GetValidatorKey creates the key for the validator with address
-// VALUE: staking/Validator
-func GetValidatorKey(operatorAddr sdk.ValAddress) []byte {
-	return append(ValidatorsKey, address.MustLengthPrefix(operatorAddr)...)
 }
 
 // GetValidatorByConsAddrKey creates the key for the validator with pubkey
@@ -270,7 +264,7 @@ func GetUBDKey(delAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte {
 // GetUBDByValIndexKey creates the index-key for an unbonding delegation, stored by validator-index
 // VALUE: none (key rearrangement used)
 func GetUBDByValIndexKey(delAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte {
-	return append(GetUBDsByValIndexKey(valAddr), address.MustLengthPrefix(delAddr)...)
+	return append(append(UnbondingDelegationByValIndexKey, address.MustLengthPrefix(valAddr)...), address.MustLengthPrefix(delAddr)...)
 }
 
 // GetUBDKeyFromValIndexKey rearranges the ValIndexKey to get the UBDKey
@@ -284,17 +278,13 @@ func GetUBDKeyFromValIndexKey(indexKey []byte) []byte {
 	kv.AssertKeyAtLeastLength(addrs, 3+int(valAddrLen))
 	delAddr := addrs[valAddrLen+2:]
 
-	return GetUBDKey(delAddr, valAddr)
+	// return GetUBDKey(delAddr, valAddr)
+	return append(append(UnbondingDelegationKey, delAddr...), valAddr...)
 }
 
 // GetUBDsKey creates the prefix for all unbonding delegations from a delegator
 func GetUBDsKey(delAddr sdk.AccAddress) []byte {
 	return append(UnbondingDelegationKey, address.MustLengthPrefix(delAddr)...)
-}
-
-// GetUBDsByValIndexKey creates the prefix keyspace for the indexes of unbonding delegations for a validator
-func GetUBDsByValIndexKey(valAddr sdk.ValAddress) []byte {
-	return append(UnbondingDelegationByValIndexKey, address.MustLengthPrefix(valAddr)...)
 }
 
 // GetUnbondingDelegationTimeKey creates the prefix for all unbonding delegations from a delegator

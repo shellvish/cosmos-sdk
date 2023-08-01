@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"cosmossdk.io/collections"
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 
@@ -179,22 +180,14 @@ func (k Querier) ValidatorUnbondingDelegations(ctx context.Context, req *types.Q
 		return nil, err
 	}
 
-	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	srcValPrefix := types.GetUBDsByValIndexKey(valAddr)
-	ubdStore := prefix.NewStore(store, srcValPrefix)
-	pageRes, err := query.Paginate(ubdStore, req.Pagination, func(key, value []byte) error {
-		storeKey := types.GetUBDKeyFromValIndexKey(append(srcValPrefix, key...))
-		storeValue := store.Get(storeKey)
-
-		ubd, err := types.UnmarshalUBD(k.cdc, storeValue)
-		if err != nil {
-			return err
-		}
-		ubds = append(ubds, ubd)
-		return nil
-	})
+	unbondingDelegations, pageRes, err := query.CollectionPaginate(ctx, k.Keeper.UnbondingDelegationByValidatorDelegator, req.Pagination, func(_ collections.Pair[sdk.ValAddress, sdk.AccAddress], value types.UnbondingDelegation) (ubd *types.UnbondingDelegation, err error) {
+		return &value, nil
+	}, query.WithCollectionPaginationPairPrefix[sdk.ValAddress, sdk.AccAddress](valAddr))
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
+	}
+	for _, ubd := range unbondingDelegations {
+		ubds = append(ubds, *ubd)
 	}
 
 	return &types.QueryValidatorUnbondingDelegationsResponse{
@@ -354,29 +347,31 @@ func (k Querier) DelegatorUnbondingDelegations(ctx context.Context, req *types.Q
 	if req.DelegatorAddr == "" {
 		return nil, status.Error(codes.InvalidArgument, "delegator address cannot be empty")
 	}
-	var unbondingDelegations types.UnbondingDelegations
+	var ubds types.UnbondingDelegations
 
-	delAddr, err := k.authKeeper.AddressCodec().StringToBytes(req.DelegatorAddr)
+	// delAddr, err := k.authKeeper.AddressCodec().StringToBytes(req.DelegatorAddr)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	delAddr, err := sdk.AccAddressFromBech32(req.DelegatorAddr)
 	if err != nil {
 		return nil, err
 	}
 
-	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	unbStore := prefix.NewStore(store, types.GetUBDsKey(delAddr))
-	pageRes, err := query.Paginate(unbStore, req.Pagination, func(key, value []byte) error {
-		unbond, err := types.UnmarshalUBD(k.cdc, value)
+	unbondingDelegations, pageRes, err := query.CollectionPaginate(ctx, k.Keeper.UnbondingDelegation, req.Pagination, func(_ sdk.AccAddress, _ types.UnbondingDelegation) (ubd *types.UnbondingDelegation, err error) {
+		ub, err := k.Keeper.UnbondingDelegation.Get(ctx, delAddr)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		unbondingDelegations = append(unbondingDelegations, unbond)
-		return nil
+		return &ub, nil
 	})
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+
+	for _, ubd := range unbondingDelegations {
+		ubds = append(ubds, *ubd)
 	}
 
 	return &types.QueryDelegatorUnbondingDelegationsResponse{
-		UnbondingResponses: unbondingDelegations, Pagination: pageRes,
+		UnbondingResponses: ubds, Pagination: pageRes,
 	}, nil
 }
 
