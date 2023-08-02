@@ -360,16 +360,19 @@ func (k Querier) DelegatorUnbondingDelegations(ctx context.Context, req *types.Q
 		return nil, err
 	}
 
-	unbondingDelegations, pageRes, err := query.CollectionPaginate(ctx, k.Keeper.UnbondingDelegation, req.Pagination, func(_ sdk.AccAddress, _ types.UnbondingDelegation) (ubd *types.UnbondingDelegation, err error) {
-		ub, err := k.Keeper.UnbondingDelegation.Get(ctx, delAddr)
+	unbondingDelegations, pageRes, err := query.CollectionPaginate(ctx, k.Keeper.UnbondingDelegation, req.Pagination, func(_ sdk.AccAddress, _ types.UnbondingDelegation) (ubd types.UnbondingDelegation, err error) {
+		ubd, err = k.Keeper.UnbondingDelegation.Get(ctx, delAddr)
 		if err != nil {
-			return nil, err
+			return ubd, err
 		}
-		return &ub, nil
+		return ubd, nil
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	for _, ubd := range unbondingDelegations {
-		ubds = append(ubds, *ubd)
+		ubds = append(ubds, ubd)
 	}
 
 	return &types.QueryDelegatorUnbondingDelegationsResponse{
