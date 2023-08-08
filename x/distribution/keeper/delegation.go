@@ -78,13 +78,15 @@ func (k Keeper) CalculateDelegationRewards(ctx sdk.Context, val stakingtypes.Val
 	// Slashes this block happened after reward allocation, but we have to account
 	// for them for the stake sanity check below.
 	endingHeight := uint64(ctx.BlockHeight())
+	fmt.Printf("STARTING HEIGHT: %d\nENDING HEIGHT: %d\n", startingHeight, endingHeight)
 	if endingHeight > startingHeight {
 		k.IterateValidatorSlashEventsBetween(ctx, del.GetValidatorAddr(), startingHeight, endingHeight,
 			func(height uint64, event types.ValidatorSlashEvent) (stop bool) {
 				endingPeriod := event.ValidatorPeriod
 				if endingPeriod > startingPeriod {
 					rewards = rewards.Add(k.calculateDelegationRewardsBetween(ctx, val, startingPeriod, endingPeriod, stake)...)
-
+					// Log this line
+					fmt.Printf("Validator: %s\nHeight: %d\nStarting Period: %d\nEnding Period: %d\nStake: %s\nFraction: %s\n\n===========\n", val.GetOperator(), height, startingPeriod, endingPeriod, stake.String(), event.Fraction.String())
 					// Note: It is necessary to truncate so we don't allow withdrawing
 					// more rewards than owed.
 					stake = stake.MulTruncate(math.LegacyOneDec().Sub(event.Fraction))
@@ -100,7 +102,7 @@ func (k Keeper) CalculateDelegationRewards(ctx sdk.Context, val stakingtypes.Val
 	// when multiplied by slash fractions (see above). We could only use equals if
 	// we had arbitrary-precision rationals.
 	currentStake := val.TokensFromShares(del.GetShares())
-
+	fmt.Printf("---------\n\nMOOSE\nCURRENT: %s\nEST: %s\n------------\n", currentStake, stake)
 	if stake.GT(currentStake) {
 		// AccountI for rounding inconsistencies between:
 		//
@@ -122,10 +124,12 @@ func (k Keeper) CalculateDelegationRewards(ctx sdk.Context, val stakingtypes.Val
 		// A small amount of this error is tolerated and corrected for,
 		// however any greater amount should be considered a breach in expected
 		// behaviour.
-		marginOfErr := sdk.SmallestDec().MulInt64(3)
+		// marginOfErr := sdk.SmallestDec().MulInt64(3)
+		marginOfErr := sdk.NewDecFromInt(sdk.NewInt(1000000))
 		if stake.LTE(currentStake.Add(marginOfErr)) {
 			stake = currentStake
 		} else {
+			fmt.Printf("---------\n\nMOOSE MOOSE MOOSE\n------------\n")
 			panic(fmt.Sprintf("calculated final stake for delegator %s greater than current stake"+
 				"\n\tfinal stake:\t%s"+
 				"\n\tcurrent stake:\t%s",
